@@ -131,7 +131,7 @@ class KalmanNetNN(torch.nn.Module):
     ##############################
     def step_KGain_est(self, y):
         # Reshape and Normalize m1x Posterior
-        #m1x_post_0 = self.m1x_posterior - self.state_process_posterior_0 # Option 1
+        # self.m1x_posterior[-2:,:] are the last 2 entries which are v_x and v_y
         with torch.no_grad():
             m1x_post_0 = self.m1x_posterior[-2:,:] - self.m1x_prior_previous[-2:,:] # Option 2
         #m1x_post_0 = self.m1x_prior
@@ -211,8 +211,8 @@ class KalmanNetNN(torch.nn.Module):
         # I fixed it by setting it to torch.no_grad() not sure if this is okay though
         # UPDATE STEP
         with torch.no_grad():
-            self.m1x_posterior[0:3,0] = acc
-            vel_posterior = vel_prior + INOV*0.001 # Why 0.001? is this like a learning rate?
+            self.m1x_posterior[0:3,0] = acc # this is the acceleration where we take values from cv_target, but why?
+            vel_posterior = vel_prior + INOV*0.1 # Why 0.001? is this like a learning rate?
             self.m1x_posterior[-2:,:] = vel_posterior
 
         self.state_process_posterior_0 = self.state_process_prior_0

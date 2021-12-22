@@ -5,6 +5,8 @@ import torch.nn.functional as func
 from NN_parameters import weights
 import time
 
+
+
 def custom_loss(output, target):
     # Input: [mxT]
     # Tries to normalize each output based on its range
@@ -50,9 +52,12 @@ def NNTest(SysModel, test_input, test_target, init_conditions, path_results):
         Model.InitSequence(v_0, SysModel.m2x_0, T_test)
         
         y_mdl_tst = test_input[j, :, :]
-        y_processed[j,:,0:1] = Model.preprocess(SysModel.m1x_0,y_mdl_tst[:,0:1])
+        y_processed[j,:,0:1], y_acc_test = Model.preprocess(SysModel.m1x_0,y_mdl_tst[:,0:1])
+        forward_acc_test = y_acc_test
+
 
         x_Net_mdl_tst = torch.empty(SysModel.m, T_test)
+        vel_test = torch.empty(2, T_test)
         frequencies = torch.empty(T_test)
 
         # We iterate over the time ( trajectory )
@@ -60,17 +65,30 @@ def NNTest(SysModel, test_input, test_target, init_conditions, path_results):
             start_time = time.time()
 
             # We perform a forward pass in the Model to get the vel_posterior
-            x_Net_mdl_tst[:,t] = Model(torch.squeeze(y_processed[j,:,t:t+1]))
+            # TODO: MISSING ARGUMENT ACC ? WHY IS ACC NEEDED (Contains the target values (do we need it for prediciton step?)
+            forward_y_test = torch.squeeze(y_processed[j,:,t:t+1])
+
+
+
+            # TODO: The model only return v_x and v_y but later onward we try to extract a_x, a_y, yaw_rate?!
+            # This save the velocity v_x and v_y
+            vel_test[: ,t] = Model(forward_y_test, forward_acc_test)
+            # Here we concatenate the acc and vel together to get the state vector
+            x_Net_mdl_tst[:, t:t+1] = torch.cat((forward_acc_test.reshape(3,1),vel_test[:,t:t+1]),dim=0)
+            #x_Net_mdl_tst[:,t] = Model(forward_y_test, forward_acc_test)
+
+
 
             # Preprocessing: Calibration + Frame transormation + Bias removal
             if(t+1 != T_test):
-                y_processed[j,:,t+1:t+2] = Model.preprocess(x_Net_mdl_tst[:,t:t+1],y_mdl_tst[:,t+1:t+2])
+                y_processed[j,:,t+1:t+2], forward_acc_test = Model.preprocess(x_Net_mdl_tst[:,t:t+1],y_mdl_tst[:,t+1:t+2])
 
             # This is used to calculate the inference time and frequency
             frequencies[t] = 1/(time.time()-start_time)
             #print(frequencies[t])
 
         # We normalize our results
+        norm_vel = func.normalize(vel_test, p=2, dim=1, eps=1e-12, out=None)
         norm_x_test = func.normalize(x_Net_mdl_tst, p=2, dim=0, eps=1e-12, out=None)
         test_target_norm = func.normalize(test_target[j,:,:], p=2, dim=0, eps=1e-12, out=None)
 
@@ -81,11 +99,11 @@ def NNTest(SysModel, test_input, test_target, init_conditions, path_results):
         # Loss over separate dimensions
         # All of these correspond to loss over v_x, v_y and so on. Not well deocumented
         # TODO: Figure out what each dimension represents
-        MSE_test_linear_dim[j,0] = loss_fn(x_Net_mdl_tst[0,:], test_target[j, 0, :]).item()
-        MSE_test_linear_dim[j,1] = loss_fn(x_Net_mdl_tst[1,:], test_target[j, 1, :]).item()
-        MSE_test_linear_dim[j,2] = loss_fn(x_Net_mdl_tst[2,:], test_target[j, 2, :]).item()
-        MSE_test_linear_dim[j,3] = loss_fn(x_Net_mdl_tst[3,:], test_target[j, 3, :]).item()
-        MSE_test_linear_dim[j,4] = loss_fn(x_Net_mdl_tst[4,:], test_target[j, 4, :]).item()
+        MSE_test_linear_dim[j,0] = loss_fn(x_Net_mdl_tst[0,:], test_target[j, 0, :]).item() # v_x this is all guessed
+        MSE_test_linear_dim[j,1] = loss_fn(x_Net_mdl_tst[1,:], test_target[j, 1, :]).item() # v_y
+        MSE_test_linear_dim[j,2] = loss_fn(x_Net_mdl_tst[2,:], test_target[j, 2, :]).item() # yaw_rate
+        MSE_test_linear_dim[j,3] = loss_fn(x_Net_mdl_tst[3,:], test_target[j, 3, :]).item() # a_x
+        MSE_test_linear_dim[j,4] = loss_fn(x_Net_mdl_tst[4,:], test_target[j, 4, :]).item() # a_y
 
         try:
             KGain_array = torch.add(Model.KGain_array, KGain_array)

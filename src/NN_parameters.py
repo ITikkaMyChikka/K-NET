@@ -15,7 +15,7 @@ import torch
 ### Network Hyperparameters ###
 ###############################
 # Number of Training Epochs
-N_Epochs = 50
+N_Epochs = 10
 
 # Number of Samples in Batch
 N_B = 30

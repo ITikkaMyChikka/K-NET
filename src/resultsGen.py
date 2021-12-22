@@ -24,7 +24,7 @@ def generate_params_file(N_E, N_CV, N_B, N_T, N_Epochs, lr, wd, T_train, T_test,
 
 def generate_results_file(loss_array_lin, loss_array_dB, loss_avg, results_path):
 
-    file = open(results_path+"results.txt","w")
+    file = open(results_path+"results_0.txt","w")
     # Title
     file.write("TEST RESULTS FILE\n")
 
@@ -44,4 +44,4 @@ def generate_results_file(loss_array_lin, loss_array_dB, loss_avg, results_path)
     file.write("\nSimulation Date & Time:"+ dt_string+"\n\n\n")
 
     file.close()
-    print("results.txt successfully saved.")
+    print("results_0.txt successfully saved.")

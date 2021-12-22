@@ -29,8 +29,8 @@ else :
 results_path = "Results/Simulation_1/Results/"
 plots_path = "Results/Simulation_1/Plots/"
 """
-results_path = "/Users/sidhu/Documents/ETH/Semester Project/Adria_KN/src/Sim1/Results/"
-plots_path = "/Users/sidhu/Documents/ETH/Semester Project/Adria_KN/src/Sim1/Plots/"
+results_path = "/Users/sidhu/Documents/ETH/Semester Project/K-NET/src/Sim1/Results/"
+plots_path = "/Users/sidhu/Documents/ETH/Semester Project/K-NET/src/Sim1/Plots/"
 data_path = "/Datasets/"
   #"utils_data/Datasets/"
 warm_start = False
@@ -82,7 +82,7 @@ print("Building System Models...")
 ## Build Training SystemModel
 Q_train = torch.eye(state_dim)
 R_train = torch.eye(obs_dim)
-m1x_0_train = torch.zeros((state_dim,1)).to(cuda0,non_blocking = True)
+m1x_0_train = torch.zeros((state_dim,1)).to(cuda0,non_blocking = True) # state = [ax,ay,dyaw,vx,vy]
 m2x_0_train = torch.zeros_like(Q_train).to(cuda0,non_blocking = True)
 
 sysModel_training = SystemModel(pipeline.f_function, Q_train, pipeline.h_function, R_train)
@@ -164,6 +164,6 @@ resultsGen.generate_params_file(N_E, N_CV, NN_parameters.N_B, N_T, NN_parameters
 resultsGen.generate_results_file(MSE_test_linear_dim_avg, MSE_test_dB_dim_avg, MSE_test_dB_avg, results_path)
 
 knet_plt.plotTrajectories(x_out_array[0,:,plot_start:plot_limit].detach(), test_target[0,:,plot_start:plot_limit].detach(), test_time[0,0,plot_start:plot_limit].detach(), 
-                          y_processed[0,:,plot_start:plot_limit], pos_integrated, plots_path + 'trajectories.png')
+                          y_processed[0,:,plot_start:plot_limit], pos_integrated, plots_path + 'trajectories_0.png')
 knet_plt.NNPlot_train(MSE_test_linear_arr, MSE_test_dB_avg,MSE_cv_dB_epoch, MSE_train_dB_epoch,plots_path)
 

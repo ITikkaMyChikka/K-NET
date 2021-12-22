@@ -6,6 +6,8 @@ import random
 from NN_parameters import weights
 from KalmanNet_plt import plotTrajectories
 
+
+
 def custom_loss(output, target):
     # Input: [mxT]
     # Tries to normalize each output based on its range
@@ -115,7 +117,8 @@ def NNTrain(SysModel, Model, cv_input, cv_target, train_input, train_target, ini
                 pass
 
             # Preprocessing: Calibration + Frame transormation + Bias removal
-            y_processed_cv[j,:,0:1] = Model.preprocess(v_0,cv_input[j,:,0:1])
+            y_processed_cv[j,:,0:1], y_acc_cv = Model.preprocess(v_0,cv_input[j,:,0:1])
+            forward_acc = y_acc_cv  # I am using the average of both IMU sensors to estimate the a_x, a_y and yaw_rate ( thorugh preprocess function)
 
             x_Net_cv = torch.empty(SysModel.m, T_sequence)
             vel_cv = torch.empty(2, T_sequence)
@@ -124,19 +127,22 @@ def NNTrain(SysModel, Model, cv_input, cv_target, train_input, train_target, ini
             for t in range(0, T_sequence):
                 # We iterate over the time sequences, so every t we estimate the velocity
                 forward_y = torch.squeeze(y_processed_cv[j,:,t:t+1])
-                forward_acc = torch.squeeze(cv_target[j,0:3,t:t+1])
+                #forward_acc = torch.squeeze(cv_target[j,0:3,t:t+1]) # Why are we using here cv_target and not y_acc from Model.preprocess
+
                 # We perfom one forward pass in the Model, which returns us vel_posterior
                 vel_cv[:,t] = Model(forward_y, forward_acc)
                 # We concatenate the cv target and our vel_posterior into one variable called x_Net_cv
                 # This corresponds to the update step
-                x_Net_cv[:,t:t+1] = torch.cat((cv_target[j,0:3,t:t+1],vel_cv[:,t:t+1]),dim=0)
+                #x_Net_cv[:,t:t+1] = torch.cat((cv_target[j,0:3,t:t+1],vel_cv[:,t:t+1]),dim=0)
+                x_Net_cv[:, t:t + 1] = torch.cat((forward_acc.reshape(3,1), vel_cv[:, t:t + 1]), dim=0)
                 # Preprocessing: Calibration + Frame transormation + Bias removal
                 #print('1:',cv_target[j,:,t].T,'\n2:',y_processed.T, '\n3:',x_Net_cv[:,t].T)
+
 
                 # As long as we havent reached the end we calculate the new y which requires the cv_input and our previous results
                 # this corresponds to the prediction step
                 if(t+1 != T_sequence):
-                    y_processed_cv[j,:,t+1:t+2] = Model.preprocess(x_Net_cv[:,t:t+1],cv_input[j,:,t+1:t+2])
+                    y_processed_cv[j,:,t+1:t+2], forward_acc = Model.preprocess(x_Net_cv[:,t:t+1],cv_input[j,:,t+1:t+2])
             
             # Clamp network output
             #x_Net_cv[torch.isnan(x_Net_cv)] = 0
@@ -191,7 +197,8 @@ def NNTrain(SysModel, Model, cv_input, cv_target, train_input, train_target, ini
             Model.InitSequence(v_0, SysModel.m2x_0, T_sequence)
 
             # Preprocessing: Calibration + Frame transormation + Bias removal
-            y_processed_train[j,:,0:1] = Model.preprocess(v_0, train_input[n_e, :, 0:1])
+            y_processed_train[j,:,0:1], y_acc_train = Model.preprocess(v_0, train_input[n_e, :, 0:1])
+            forward_acc_train = y_acc_train # We use the average of both IMU sensor to estimate the acceleration and yaw
 
             x_Net_training = torch.empty(SysModel.m, T_sequence)
             vel_train = torch.empty(2, T_sequence)
@@ -200,7 +207,7 @@ def NNTrain(SysModel, Model, cv_input, cv_target, train_input, train_target, ini
             for t in range(0, T_sequence):
 
                 forward_y_train = torch.squeeze(y_processed_train[j,:,t:t+1])
-                forward_acc_train = torch.squeeze(train_target[n_e,0:3,t:t+1])
+                #forward_acc_train = torch.squeeze(train_target[n_e,0:3,t:t+1])
 
                 # In every time step t, we perfom a forward pass with the network which return vel_posterior
                 # This is the update Step
@@ -212,7 +219,7 @@ def NNTrain(SysModel, Model, cv_input, cv_target, train_input, train_target, ini
                 # Preprocessing: Calibration + Frame transormation + Bias removal
                 if(t+1 != T_sequence):
                     # This corresponds to the prediction step
-                    y_processed_train[j,:,t+1:t+2] = Model.preprocess(x_Net_training[:,t:t+1], train_input[n_e,:,t+1:t+2])
+                    y_processed_train[j,:,t+1:t+2], forward_acc_train = Model.preprocess(x_Net_training[:,t:t+1], train_input[n_e,:,t+1:t+2])
 
             # Clamp output
             #x_Net_training[torch.isnan(x_Net_training)] = 0

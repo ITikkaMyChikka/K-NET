@@ -153,7 +153,6 @@ def VD_Mean_Model(state,new_st):
     # Outputs:  model - Vehicle dynamics model for mean state
 
     ## Load State
-    #SIDHU: State actually [ax,ay,yaw_rate,vx,vy]
     # State:[vx;vy;dyaw;ax;ay;ddyaw;srfl;srfr;srrl;srrr;roll;pitch;droll;dpitch]
     vel = torch.zeros(3,1)
     vel[0:2,:] = state[3:5,:]

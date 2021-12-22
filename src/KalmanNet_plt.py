@@ -281,5 +281,5 @@ def plotTrajectories(state_KNet, state_MKF, time, sensors, position, file_name,d
 
     fig.tight_layout()
     plt.pyplot.savefig(file_name,dpi=dpi)
-    print("Trajectory plot successfuly saved")
+    print("Trajectory plot successfully saved")
     plt.pyplot.close('all')

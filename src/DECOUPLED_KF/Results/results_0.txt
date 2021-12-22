@@ -1,0 +1,11 @@
+TEST RESULTS FILE
+vx MSE:13.524206161499023[dB], 
+ax MSE:19.621068954467773[dB], 
+
+Optimal q_value:tensor(0.0010)
+
+Kalman Gain:tensor([[0.0029, 0.0008],
+        [0.0008, 0.0006]])
+Simulation Date & Time:17/12/2021 20:54:44
+
+
