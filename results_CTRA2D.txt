@@ -1,0 +1,55 @@
+TEST RESULTS FILE:
+
+
+ RESULTS FROM KF WITH FULL OBSERVATION:
+pos MSE:tensor(338.7009)[dB], 
+vel MSE:tensor(183.7997)[dB], 
+acc MSE:tensor(148.0765)[dB], 
+total MSE:tensor(333.9297)[dB], 
+
+ optimal variance of acceleration for KF_FO:7.000000000000001e-05
+
+ optimal q^2 value for KF_FO:1.7500000000000002e-12
+
+ RESULTS FROM KF WITH POS OBSERVATION:
+pos MSE:tensor(75.3659)[dB], 
+vel MSE:tensor(96.5639)[dB], 
+acc MSE:tensor(93.0964)[dB], 
+total MSE:tensor(91.6047)[dB], 
+
+ optimal variance of acceleration for KF_PO:7.000000000000001e-05
+
+ optimal q^2 value for KF_PO:1.7500000000000002e-12
+
+ RESULTS FROM KF WITH IMU OBSERVATION:
+pos MSE:tensor(220.2226)[dB], 
+vel MSE:tensor(-28.2607)[dB], 
+acc MSE:tensor(-0.8811)[dB], 
+total MSE:tensor(215.4514)[dB], 
+
+ optimal variance of acceleration for KF_VO:7.000000000000001e-05
+
+ optimal q^2 value for KF_VO:1.7500000000000002e-12
+
+ RESULTS FROM KF WITH POS AND IMU OBSERVATION:
+pos MSE:tensor(97.0225)[dB], 
+vel MSE:tensor(36.4330)[dB], 
+acc MSE:tensor(39.1017)[dB], 
+total MSE:tensor(92.3199)[dB], 
+
+ optimal variance of acceleration for KF_VO:7.000000000000001e-05
+
+ optimal q^2 value for KF_VO:1.7500000000000002e-12
+
+ MSE of noisy observation and GT:
+
+pos MSE:0.053882004939799125[dB], 
+vel MSE:-0.024630578686900415[dB], 
+acc MSE:0.00606395324420844[dB], 
+total MSE:0.012673897041752312[dB], 
+
+ variance of acceleration for data generation: 7.000000000000001e-05
+
+ standard deviation of acceleration for data generation: 0.008366600265340756
+
+ q^2 value for data generation:1.75e-13
